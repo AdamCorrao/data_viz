@@ -1,15 +1,20 @@
 '''
-Generalized tool to plot 1D data. GUI selection tool to pick data to plot.
+Script functionality:
+Generalized tool to plot 1D data. GUI selection tool to pick data to plot. Mouse action options for plot interaction.
 User edits 1st section where prompted for column delimiter, header/footer rows, and plot settings.
 Options for systematic x/y offsets, axis labels, and plot dimensions. Error checks for data consistency and shape.
 Compatible with any text file (e.g., .xy, .xye, .dat, .chi, .csv) or number of columns (i.e., x/y error columns)
+Required libraries:
+-Scientific computing libraries (e.g., NumPy, Pandas) ; matplotlib ; tkinter ; tkfilebrowser ; colorama ; mplcursors
+-These libraries are all freely available and can be routinely installed (e.g., "pip install mplcursors")
 Author: Adam A. Corrao
 Date written: June 28th, 2022
-Date last edited: October 20th, 2022
+Date last edited: October 21st, 2022
 '''
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import mplcursors
 import pandas as pd
 import os
 import tkfilebrowser
@@ -21,19 +26,25 @@ mpl.rcParams['mathtext.default'] = 'regular'
 init(autoreset=True)
 os.system('cls')
 
-# Section for user to edit
-# data info
+#######################################Section for user to edit as needed###############################################
+# data delimiter, header / footer rows
 delim = ''  # delimiter in files to plot - defaulted as whitespace. change as needed (typically , or \t)
 header_rows = 1  # number of header rows to ignore when reading files - defaulted to 1 assuming column labels to ignore
 footer_rows = 0  # number of footer rows to ignore when reading files - defaulted to 0 assuming no footer
+
+mouse_action = 'click'  # options are 'click' or 'hover' or 'None'
+# click = left click line in plot for pop-up with label and x,y coords, right click to deselect
+# hover = hover mouse over line in plot displays pop-up
+
 # plot settings
-x_offset = 0.0  # x-axis offset for patterns (from one to next)
-y_offset = 100  # y-axis offset for patterns (from one to next)
+x_offset = 0  # x-axis offset between patterns (from one to next)
+y_offset = 100  # y-axis offset between patterns (from one to next)
 x_axis_label = r'2$\theta$ (degrees)'  # x-axis label
 y_axis_label = 'Intensity (counts)'  # y-axis label
 plot_width = 7  # width of plot in inches. if set to 0, will plot with mpl default
 plot_height = 7  # height of plot in inches. if set to 0, will plot with mpl default
 max_legend_size = 10  # maximum number of legend entries (i.e. data files) - plotting more than this turns legend off
+
 
 ########################Automated data selection, reading, error checking, plotting below here##########################
 # pattern select
@@ -91,16 +102,20 @@ if numcolumns[0] >= 4:  # if 4 or more columns present, asks for user input to d
     for filepath, file, x, y in zip(filepaths, files, x_offset_array, y_offset_array):
         data = np.genfromtxt(filepath + os.sep + file, skip_header=header_rows, skip_footer=footer_rows,
                              delimiter=delim)
-        print('data loaded: ' + file)
         plt.plot((data[:, int(xcolumn)] + x), (data[:, int(ycolumn)] + y), label=file)
-        print('x and y column plotted:' + xcolumn + ' ' + ycolumn)
 plt.xlabel(x_axis_label)
 plt.ylabel(y_axis_label)
+
+# mouse action
+if mouse_action is 'click':
+    mplcursors.cursor()
+if mouse_action is 'hover':
+    mplcursors.cursor(hover=True)
 
 if len(files) > max_legend_size:
     print(Fore.RED + 'Number of legend entries exceeds user defined max legend size, no legend on plot')
 else:
-    plt.legend(loc='upper right') #legend location can be changed as needed
+    plt.legend(loc='upper right')  # legend location can be changed as needed
 
 if plot_width is 0 or plot_height is 0:
     print('Plot width or height is 0')
